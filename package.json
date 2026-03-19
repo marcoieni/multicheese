@@ -1,0 +1,47 @@
+{
+  "name": "multicheese",
+  "version": "0.1.0",
+  "description": "Take authenticated full-page screenshots for many URLs with Playwright and managed Chrome profiles.",
+  "type": "module",
+  "bin": {
+    "multicheese": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json",
+    "dev": "tsx src/cli.ts",
+    "lint": "eslint .",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "install:local": "pnpm build && node scripts/install-local.mjs"
+  },
+  "keywords": [
+    "playwright",
+    "screenshots",
+    "chrome",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@inquirer/prompts": "^8.3.2",
+    "commander": "^14.0.3",
+    "csv-parse": "^6.2.0",
+    "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.5.0",
+    "eslint": "^10.0.3",
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
+    "vitest": "^4.1.0"
+  },
+  "packageManager": "pnpm@10.32.1"
+}
