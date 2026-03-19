@@ -49,14 +49,9 @@ export async function listProfiles(
         const directory = path.join(root, entry.name);
         const metadataPath = path.join(directory, PROFILE_METADATA_FILE);
 
-        let metadata: ProfileMetadata | null = null;
-        try {
-          metadata = JSON.parse(
-            await readFile(metadataPath, "utf8"),
-          ) as ProfileMetadata;
-        } catch {
-          metadata = null;
-        }
+        const metadata = await readFile(metadataPath, "utf8")
+          .then((contents) => JSON.parse(contents) as ProfileMetadata)
+          .catch(() => null);
 
         return {
           name: metadata?.name ?? entry.name,

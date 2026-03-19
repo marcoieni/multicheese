@@ -28,20 +28,20 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@inquirer/prompts": "^7.8.4",
-    "commander": "^14.0.1",
-    "csv-parse": "^6.1.0",
-    "playwright": "^1.55.0"
+    "@inquirer/prompts": "^8.3.2",
+    "commander": "^14.0.3",
+    "csv-parse": "^6.2.0",
+    "playwright": "^1.58.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.35.0",
-    "@types/node": "^24.5.2",
-    "eslint": "^9.35.0",
-    "prettier": "^3.6.2",
-    "tsx": "^4.20.5",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.44.0",
-    "vitest": "^3.2.4"
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.5.0",
+    "eslint": "^10.0.3",
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
+    "vitest": "^4.1.0"
   },
   "packageManager": "pnpm@10.32.1"
 }
