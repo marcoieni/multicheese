@@ -49,23 +49,25 @@ export async function runScreenshotJob(
   const failures: ScreenshotFailure[] = [];
   let succeededCount = 0;
   process.stdout.write(
-    `Creating output directory ${options.preparedWorkspace.outputDirectory}\n`,
+    `📂 Creating output directory ${options.preparedWorkspace.outputDirectory}\n`,
   );
   await mkdir(options.preparedWorkspace.outputDirectory, { recursive: false });
-  process.stdout.write(`Starting browser session for ${tasks.length} URL(s)\n`);
+  process.stdout.write(
+    `🌐 Starting browser session for ${tasks.length} URL(s)\n`,
+  );
   const session = await options.createSession();
 
   try {
     for (const task of tasks) {
       const displayIndex = task.index + 1;
       process.stdout.write(
-        `[${displayIndex}/${tasks.length}] Capturing ${task.url}\n`,
+        `📸 [${displayIndex}/${tasks.length}] Capturing ${task.url}\n`,
       );
       try {
         await session.capture(task);
         succeededCount += 1;
         process.stdout.write(
-          `[${displayIndex}/${tasks.length}] Saved ${path.basename(task.outputPath)}\n`,
+          `✅ [${displayIndex}/${tasks.length}] Saved ${path.basename(task.outputPath)}\n`,
         );
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -74,12 +76,12 @@ export async function runScreenshotJob(
           message,
         });
         process.stdout.write(
-          `[${displayIndex}/${tasks.length}] Failed ${task.url}: ${message}\n`,
+          `❌ [${displayIndex}/${tasks.length}] Failed ${task.url}: ${message}\n`,
         );
       }
     }
   } finally {
-    process.stdout.write("Closing browser session\n");
+    process.stdout.write("🧹 Closing browser session\n");
     await session.close();
   }
 

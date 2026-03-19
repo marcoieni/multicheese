@@ -89,23 +89,27 @@ program
         waitMs: number;
       }) => {
         process.stdout.write(
-          `Preparing run in workspace ${path.resolve(options.workspace)}\n`,
+          `📁 Preparing run in workspace ${path.resolve(options.workspace)}\n`,
         );
         const preparedWorkspace = await prepareWorkspace(
           path.resolve(options.workspace),
         );
         process.stdout.write(
-          `Using output directory ${preparedWorkspace.outputDirectoryName}\n`,
+          `🗂️ Using output directory ${preparedWorkspace.outputDirectoryName}\n`,
         );
         const profile = await resolveProfileForRun(options.profile);
-        process.stdout.write(`Using profile "${profile.name}"\n`);
+        process.stdout.write(`👤 Using profile "${profile.name}"\n`);
         const lock = await acquireProfileLock(profile.directory);
-        process.stdout.write(`Acquired lock for profile "${profile.name}"\n`);
+        process.stdout.write(
+          `🔒 Acquired lock for profile "${profile.name}"\n`,
+        );
 
         try {
           const urls = await readUrlsFromCsv(preparedWorkspace.urlsFilePath);
-          process.stdout.write(`Loaded ${urls.length} URL(s) from urls.csv\n`);
-          process.stdout.write("Starting screenshot capture\n");
+          process.stdout.write(
+            `🔗 Loaded ${urls.length} URL(s) from urls.csv\n`,
+          );
+          process.stdout.write("🚀 Starting screenshot capture\n");
           const summary = await runScreenshotJob({
             preparedWorkspace,
             urls,
@@ -131,7 +135,7 @@ program
           }
         } finally {
           process.stdout.write(
-            `Releasing profile lock for "${profile.name}"\n`,
+            `🔓 Releasing profile lock for "${profile.name}"\n`,
           );
           await lock.release();
         }

@@ -38,29 +38,31 @@ export async function createPlaywrightScreenshotSession(options: {
   waitMs: number;
 }): Promise<ScreenshotSession> {
   process.stdout.write(
-    `Launching headless Chrome for profile "${options.profile.name}"\n`,
+    `👤 Launching headless Chrome for profile "${options.profile.name}"\n`,
   );
   const context = await launchChromeContext(options.profile.directory, {
     headless: true,
   });
   const page = await getOrCreatePage(context);
-  process.stdout.write("Chrome session ready\n");
+  process.stdout.write("✨ Chrome session ready\n");
 
   return {
     async capture(task: ScreenshotTask) {
-      process.stdout.write(`Opening ${task.url}\n`);
+      process.stdout.write(`➡️ Opening ${task.url}\n`);
       await page.goto(task.url, { waitUntil: "load" });
-      process.stdout.write(`Waiting for network idle on ${task.url}\n`);
+      process.stdout.write(`⏳ Waiting for network idle on ${task.url}\n`);
       await page
         .waitForLoadState("networkidle", { timeout: NETWORK_IDLE_TIMEOUT_MS })
         .catch(() => undefined);
 
       if (options.waitMs > 0) {
-        process.stdout.write(`Waiting ${options.waitMs}ms before screenshot\n`);
+        process.stdout.write(
+          `🕰️ Waiting ${options.waitMs}ms before screenshot\n`,
+        );
         await page.waitForTimeout(options.waitMs);
       }
 
-      process.stdout.write(`Writing screenshot to ${task.outputPath}\n`);
+      process.stdout.write(`💾 Writing screenshot to ${task.outputPath}\n`);
       await page.screenshot({
         path: task.outputPath,
         fullPage: true,
