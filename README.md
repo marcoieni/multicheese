@@ -71,11 +71,11 @@ multicheese auth list
 
 ### 2. Prepare a job folder
 
-Run screenshots from a separate folder, not from the project root.
+Run the command from a separate folder, not from the project root.
 
-That folder must contain:
+That folder must contain one file named `urls.csv`.
 
-- one file named `urls.csv`
+The following can also be present:
 - zero or more directories named `screenshotsNNN`
 - optional hidden files like `.DS_Store`
 
@@ -84,11 +84,18 @@ Example:
 ```text
 /tmp/my-job
 ├── urls.csv
-├── screenshots000
-└── screenshots001
+├── screenshots000/
+└── screenshots001/
 ```
 
 `urls.csv` must contain one URL per row. It may be headerless or use a single `url` header:
+
+```csv
+https://example.com
+https://example.com/docs
+```
+
+or
 
 ```csv
 url
@@ -106,7 +113,7 @@ Options:
 
 - `--profile <name>`: managed profile to use
 - `--workspace <dir>`: job folder to validate and process
-- `--wait-ms <ms>`: extra time to wait after each page load, default `1000`
+- `--wait-ms <ms>`: extra time to wait after each page load, default `10`
 
 Each run creates the next output directory:
 
@@ -134,7 +141,3 @@ pnpm format:check
 pnpm typecheck
 pnpm test
 ```
-
-## CI
-
-GitHub Actions runs formatting, linting, type-checking, and tests on pushes and pull requests.
