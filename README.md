@@ -76,6 +76,7 @@ Run the command from a separate folder, not from the project root.
 That folder must contain one file named `urls.csv`.
 
 The following can also be present:
+
 - zero or more directories named `screenshotsNNN`
 - optional hidden files like `.DS_Store`
 
