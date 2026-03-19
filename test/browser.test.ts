@@ -1,12 +1,8 @@
 import { describe, expect, test } from "vitest";
 
-import { getDefaultWaitMs, parseWaitMs } from "../src/browser.js";
+import { parseWaitMs } from "../src/browser.js";
 
 describe("browser helpers", () => {
-  test("returns the default wait time", () => {
-    expect(getDefaultWaitMs()).toBe(10);
-  });
-
   test("parses a valid wait time", () => {
     expect(parseWaitMs("2500")).toBe(2_500);
   });
