@@ -1,5 +1,7 @@
 # multicheese
 
+![logo](./assets/logo.png)
+
 `multicheese` is a CLI that opens authenticated pages in Google Chrome through Playwright and saves one full-page PNG screenshot per URL.
 
 ## Why it uses managed profiles
