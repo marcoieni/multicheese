@@ -1,10 +1,9 @@
 import { chmod, mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import process from "node:process";
+import { getDistDir } from "./dist-path.mjs";
 
-const repoRoot = process.cwd();
-const source = path.join(repoRoot, "dist", "cli.js");
+const source = path.join(getDistDir(), "cli.js");
 const binDir = path.join(os.homedir(), ".local", "bin");
 const destination = path.join(binDir, "multicheese");
 const launcher = `#!/bin/sh

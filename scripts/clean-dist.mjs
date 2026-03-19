@@ -1,5 +1,4 @@
 import { rm } from "node:fs/promises";
-import path from "node:path";
-import process from "node:process";
+import { getDistDir } from "./dist-path.mjs";
 
-await rm(path.join(process.cwd(), "dist"), { recursive: true, force: true });
+await rm(getDistDir(), { recursive: true, force: true });
