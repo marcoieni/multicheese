@@ -10,7 +10,6 @@ import {
   openAuthenticationBrowser,
   parseWaitMs,
 } from "./browser.js";
-import { assertSupportedPlatform } from "./platform.js";
 import { acquireProfileLock } from "./profile-lock.js";
 import {
   listProfiles,
@@ -37,7 +36,6 @@ authCommand
   .description("List available managed Chrome profiles.")
   .action(
     wrapAction(async () => {
-      assertSupportedPlatform();
       const profiles = await listProfiles();
 
       if (profiles.length === 0) {
@@ -57,7 +55,6 @@ authCommand
   .description("Open a managed Chrome profile so you can log in manually.")
   .action(
     wrapAction(async (profileName: string | undefined) => {
-      assertSupportedPlatform();
       const profile = await resolveProfileForAuth(profileName);
       const lock = await acquireProfileLock(profile.directory);
 
@@ -91,8 +88,6 @@ program
         workspace: string;
         waitMs: number;
       }) => {
-        assertSupportedPlatform();
-
         const preparedWorkspace = await prepareWorkspace(
           path.resolve(options.workspace),
         );

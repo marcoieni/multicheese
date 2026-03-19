@@ -4,7 +4,7 @@ import { getDefaultWaitMs, parseWaitMs } from "../src/browser.js";
 
 describe("browser helpers", () => {
   test("returns the default wait time", () => {
-    expect(getDefaultWaitMs()).toBe(1_000);
+    expect(getDefaultWaitMs()).toBe(10);
   });
 
   test("parses a valid wait time", () => {
