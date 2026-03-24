@@ -56,10 +56,7 @@ export async function acquireProfileLock(
   };
 }
 
-async function openLockFile(
-  lockPath: string,
-  profileDirectory: string,
-) {
+async function openLockFile(lockPath: string, profileDirectory: string) {
   try {
     return await open(lockPath, "wx");
   } catch (error) {
