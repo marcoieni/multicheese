@@ -1,4 +1,4 @@
-import { open, rm } from "node:fs/promises";
+import { open, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
@@ -12,30 +12,24 @@ export async function acquireProfileLock(
   profileDirectory: string,
 ): Promise<ProfileLock> {
   const lockPath = path.join(profileDirectory, PROFILE_LOCK_FILE);
-  const handle = await open(lockPath, "wx").catch(
-    (error: NodeJS.ErrnoException) => {
-      if (error.code === "EEXIST") {
-        throw new Error(
-          `Profile at "${profileDirectory}" is already in use. Close the other multicheese session using this profile and try again.`,
-        );
-      }
-
-      throw error;
-    },
-  );
+  const handle = await openLockFile(lockPath, profileDirectory);
 
   await handle.writeFile(`${process.pid}\n`, "utf8");
 
   let released = false;
 
-  const cleanup = (): void => {
+  const cleanupAsync = async (): Promise<void> => {
     if (released) {
       return;
     }
 
     released = true;
-    void handle.close().catch(() => undefined);
-    void rm(lockPath, { force: true });
+    await handle.close().catch(() => undefined);
+    await rm(lockPath, { force: true }).catch(() => undefined);
+  };
+
+  const cleanup = (): void => {
+    void cleanupAsync();
   };
 
   const onSigInt = (): never => {
@@ -53,12 +47,74 @@ export async function acquireProfileLock(
   process.once("SIGTERM", onSigTerm);
 
   return {
-    release() {
-      cleanup();
+    async release() {
       process.removeListener("exit", cleanup);
       process.removeListener("SIGINT", onSigInt);
       process.removeListener("SIGTERM", onSigTerm);
-      return Promise.resolve();
+      await cleanupAsync();
     },
   };
+}
+
+async function openLockFile(lockPath: string, profileDirectory: string) {
+  try {
+    return await open(lockPath, "wx");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+      throw error;
+    }
+  }
+
+  if (!(await isStaleLock(lockPath))) {
+    throw createProfileInUseError(profileDirectory);
+  }
+
+  await rm(lockPath, { force: true });
+
+  return open(lockPath, "wx").catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "EEXIST") {
+      throw createProfileInUseError(profileDirectory);
+    }
+
+    throw error;
+  });
+}
+
+async function isStaleLock(lockPath: string): Promise<boolean> {
+  const contents = await readFile(lockPath, "utf8").catch(
+    (error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") {
+        return "";
+      }
+
+      throw error;
+    },
+  );
+  const pid = Number.parseInt(contents.trim(), 10);
+
+  if (!Number.isInteger(pid) || pid <= 0) {
+    return true;
+  }
+
+  try {
+    process.kill(pid, 0);
+    return false;
+  } catch (error) {
+    const errno = error as NodeJS.ErrnoException;
+    if (errno.code === "ESRCH") {
+      return true;
+    }
+
+    if (errno.code === "EPERM") {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+function createProfileInUseError(profileDirectory: string): Error {
+  return new Error(
+    `Profile at "${profileDirectory}" is already in use. Close the other multicheese session using this profile and try again.`,
+  );
 }
