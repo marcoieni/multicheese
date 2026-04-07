@@ -10,6 +10,7 @@ import {
   openAuthenticationBrowser,
   parseWaitMs,
 } from "./browser.js";
+import { copyImageToClipboard } from "./clipboard.js";
 import { acquireProfileLock } from "./profile-lock.js";
 import {
   listProfiles,
@@ -18,7 +19,7 @@ import {
 } from "./profile-store.js";
 import { runScreenshotJob } from "./screenshot-runner.js";
 import { readUrlsFromCsv } from "./url-list.js";
-import { prepareWorkspace } from "./workspace.js";
+import { prepareOutputDirectory, prepareWorkspace } from "./workspace.js";
 
 const program = new Command();
 
@@ -68,11 +69,17 @@ authCommand
 
 program
   .command("run")
-  .description("Capture one full-page screenshot per URL from urls.csv.")
+  .argument(
+    "[url]",
+    "Capture a single URL and copy the resulting screenshot to the clipboard",
+  )
+  .description(
+    "Capture full-page screenshots from urls.csv, or capture one URL passed directly.",
+  )
   .option("--profile <name>", "Managed profile name to use")
   .option(
     "--workspace <dir>",
-    "Job folder that contains urls.csv and screenshotsNNN",
+    "Output folder for screenshotsNNN, and the job folder when reading urls.csv",
     process.cwd(),
   )
   .option(
@@ -83,19 +90,36 @@ program
   )
   .action(
     wrapAction(
-      async (options: {
-        profile?: string;
-        workspace: string;
-        waitMs: number;
-      }) => {
+      async (
+        url: string | undefined,
+        options: {
+          profile?: string;
+          workspace: string;
+          waitMs: number;
+        },
+      ) => {
+        const directUrl = url ? parseRunUrl(url) : null;
+        const workspaceDirectory = path.resolve(options.workspace);
+        let preparedRunTarget: {
+          outputDirectory: string;
+          outputDirectoryName: string;
+        };
+        let urls: string[];
+
+        if (directUrl) {
+          preparedRunTarget = await prepareOutputDirectory(workspaceDirectory);
+          urls = [directUrl];
+        } else {
+          const preparedWorkspace = await prepareWorkspace(workspaceDirectory);
+          preparedRunTarget = preparedWorkspace;
+          urls = await readUrlsFromCsv(preparedWorkspace.urlsFilePath);
+        }
+
         process.stdout.write(
-          `📁 Preparing run in workspace ${path.resolve(options.workspace)}\n`,
-        );
-        const preparedWorkspace = await prepareWorkspace(
-          path.resolve(options.workspace),
+          `📁 Preparing run in workspace ${workspaceDirectory}\n`,
         );
         process.stdout.write(
-          `🗂️ Using output directory ${preparedWorkspace.outputDirectoryName}\n`,
+          `🗂️ Using output directory ${preparedRunTarget.outputDirectoryName}\n`,
         );
         const profile = await resolveProfileForRun(options.profile);
         process.stdout.write(`👤 Using profile "${profile.name}"\n`);
@@ -105,13 +129,14 @@ program
         );
 
         try {
-          const urls = await readUrlsFromCsv(preparedWorkspace.urlsFilePath);
           process.stdout.write(
-            `🔗 Loaded ${urls.length} URL(s) from urls.csv\n`,
+            directUrl
+              ? `🔗 Capturing direct URL ${directUrl}\n`
+              : `🔗 Loaded ${urls.length} URL(s) from urls.csv\n`,
           );
           process.stdout.write("🚀 Starting screenshot capture\n");
           const summary = await runScreenshotJob({
-            preparedWorkspace,
+            outputDirectory: preparedRunTarget.outputDirectory,
             urls,
             createSession: () =>
               createPlaywrightScreenshotSession({
@@ -123,6 +148,17 @@ program
           process.stdout.write(
             `Saved ${summary.succeededCount} screenshot(s) to ${summary.outputDirectory}\n`,
           );
+
+          if (directUrl) {
+            const [completedTask] = summary.completedTasks;
+            if (completedTask) {
+              process.stdout.write("📋 Copying screenshot to the clipboard\n");
+              await copyImageToClipboard(completedTask.outputPath);
+              process.stdout.write(
+                `📋 Copied ${path.basename(completedTask.outputPath)} to the clipboard\n`,
+              );
+            }
+          }
 
           if (summary.failures.length > 0) {
             process.stdout.write(
@@ -157,4 +193,14 @@ function wrapAction<TArgs extends unknown[]>(
       process.exitCode = 1;
     }
   };
+}
+
+function parseRunUrl(value: string): string {
+  try {
+    new URL(value);
+  } catch {
+    throw new Error(`Invalid URL: "${value}".`);
+  }
+
+  return value;
 }

@@ -14,6 +14,12 @@ export interface PreparedWorkspace {
   outputDirectoryName: string;
 }
 
+export interface PreparedOutputDirectory {
+  workspaceDirectory: string;
+  outputDirectory: string;
+  outputDirectoryName: string;
+}
+
 export function getNextScreenshotDirectoryName(
   existingNames: string[],
 ): string {
@@ -60,6 +66,37 @@ export async function prepareWorkspace(
     );
   }
 
+  const preparedOutputDirectory = buildPreparedOutputDirectory(
+    workspaceDirectory,
+    screenshotDirectories,
+  );
+
+  return {
+    ...preparedOutputDirectory,
+    urlsFilePath: path.join(workspaceDirectory, URLS_FILE_NAME),
+  };
+}
+
+export async function prepareOutputDirectory(
+  workspaceDirectory: string,
+): Promise<PreparedOutputDirectory> {
+  const entries = await readdir(workspaceDirectory, { withFileTypes: true });
+  const screenshotDirectories = entries
+    .filter(
+      (entry) => entry.isDirectory() && SCREENSHOTS_PATTERN.test(entry.name),
+    )
+    .map((entry) => entry.name);
+
+  return buildPreparedOutputDirectory(
+    workspaceDirectory,
+    screenshotDirectories,
+  );
+}
+
+function buildPreparedOutputDirectory(
+  workspaceDirectory: string,
+  screenshotDirectories: string[],
+): PreparedOutputDirectory {
   const outputDirectoryName = getNextScreenshotDirectoryName(
     screenshotDirectories,
   );
@@ -67,7 +104,6 @@ export async function prepareWorkspace(
 
   return {
     workspaceDirectory,
-    urlsFilePath: path.join(workspaceDirectory, URLS_FILE_NAME),
     outputDirectory,
     outputDirectoryName,
   };

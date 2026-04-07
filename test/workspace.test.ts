@@ -6,6 +6,7 @@ import { afterEach, describe, expect, test } from "vitest";
 
 import {
   getNextScreenshotDirectoryName,
+  prepareOutputDirectory,
   prepareWorkspace,
 } from "../src/workspace.js";
 
@@ -74,6 +75,29 @@ describe("workspace validation", () => {
 
     await expect(prepareWorkspace(workspaceDirectory)).rejects.toThrow(
       'Unexpected entry: "notes.txt".',
+    );
+  });
+
+  test("prepares an output directory for direct URL runs without urls.csv", async () => {
+    const workspaceDirectory = await mkdtemp(
+      path.join(os.tmpdir(), "multicheese-direct-"),
+    );
+    tempDirectories.push(workspaceDirectory);
+
+    await writeFile(
+      path.join(workspaceDirectory, "notes.txt"),
+      "keep this file\n",
+      "utf8",
+    );
+    await import("node:fs/promises").then(({ mkdir }) =>
+      mkdir(path.join(workspaceDirectory, "screenshots000")),
+    );
+
+    const preparedOutput = await prepareOutputDirectory(workspaceDirectory);
+
+    expect(preparedOutput.outputDirectoryName).toBe("screenshots001");
+    expect(preparedOutput.outputDirectory).toBe(
+      path.join(workspaceDirectory, "screenshots001"),
     );
   });
 });
