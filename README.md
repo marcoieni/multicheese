@@ -2,7 +2,7 @@
 
 ![logo](./assets/logo.png)
 
-`multicheese` is a CLI that opens authenticated pages in Google Chrome through Playwright and saves one full-page PNG screenshot per URL.
+`multicheese` is a CLI that opens authenticated pages in Google Chrome through Playwright and saves full-page PNG screenshots, either from a CSV batch or from a single direct URL.
 
 ## Why it uses managed profiles
 
@@ -113,7 +113,7 @@ https://example.com
 https://example.com/docs
 ```
 
-### 3. Capture screenshots
+### 3. Capture screenshots from `urls.csv`
 
 ```bash
 multicheese run --profile work --workspace /tmp/my-job
@@ -122,7 +122,7 @@ multicheese run --profile work --workspace /tmp/my-job
 Options:
 
 - `--profile <name>`: managed profile to use
-- `--workspace <dir>`: job folder to validate and process
+- `--workspace <dir>`: output folder for `screenshotsNNN`, and the job folder to validate and process when using `urls.csv`
 - `--wait-ms <ms>`: extra time to wait after each page load, default `10`
 
 Each run creates the next output directory:
@@ -137,6 +137,20 @@ Output files are named from the URL and prefixed with the CSV order, for example
 001-example-com.png
 002-example-com-docs.png
 003-example-com-products-widget-a1b2c3d4.png
+```
+
+### 4. Capture one URL and copy it to the clipboard
+
+```bash
+multicheese run https://example.com --profile work
+```
+
+This captures one screenshot into the next `screenshotsNNN` directory under the current working directory, then copies the saved PNG to the system clipboard.
+
+You can still choose a different output directory:
+
+```bash
+multicheese run https://example.com --profile work --workspace /tmp/one-off
 ```
 
 ## Development

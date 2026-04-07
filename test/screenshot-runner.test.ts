@@ -40,7 +40,7 @@ describe("screenshot runner", () => {
     const capturedPaths: string[] = [];
 
     const summary = await runScreenshotJob({
-      preparedWorkspace,
+      outputDirectory: preparedWorkspace.outputDirectory,
       urls,
       createSession() {
         return Promise.resolve({
@@ -61,6 +61,8 @@ describe("screenshot runner", () => {
     expect(summary.succeededCount).toBe(1);
     expect(summary.failedCount).toBe(1);
     expect(summary.failures[0]?.url).toBe("https://example.com/fail");
+    expect(summary.completedTasks).toHaveLength(1);
+    expect(summary.completedTasks[0]?.outputPath).toBe(capturedPaths[0]);
     expect(capturedPaths[0]).toContain(
       path.join(workspaceDirectory, "screenshots001"),
     );

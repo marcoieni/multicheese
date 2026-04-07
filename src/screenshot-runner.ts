@@ -2,8 +2,6 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
 import { buildScreenshotFileName } from "./filenames.js";
-import type { PreparedWorkspace } from "./workspace.js";
-
 export interface ScreenshotTask {
   index: number;
   url: string;
@@ -20,6 +18,7 @@ export interface ScreenshotSummary {
   succeededCount: number;
   failedCount: number;
   failures: ScreenshotFailure[];
+  completedTasks: ScreenshotTask[];
 }
 
 export interface ScreenshotSession {
@@ -28,7 +27,7 @@ export interface ScreenshotSession {
 }
 
 export interface RunScreenshotJobOptions {
-  preparedWorkspace: PreparedWorkspace;
+  outputDirectory: string;
   urls: string[];
   createSession(): Promise<ScreenshotSession>;
 }
@@ -41,17 +40,18 @@ export async function runScreenshotJob(
     index,
     url,
     outputPath: path.join(
-      options.preparedWorkspace.outputDirectory,
+      options.outputDirectory,
       buildScreenshotFileName(url, index, usedNames),
     ),
   }));
 
   const failures: ScreenshotFailure[] = [];
+  const completedTasks: ScreenshotTask[] = [];
   let succeededCount = 0;
   process.stdout.write(
-    `📂 Creating output directory ${options.preparedWorkspace.outputDirectory}\n`,
+    `📂 Creating output directory ${options.outputDirectory}\n`,
   );
-  await mkdir(options.preparedWorkspace.outputDirectory, { recursive: false });
+  await mkdir(options.outputDirectory, { recursive: false });
   process.stdout.write(
     `🌐 Starting browser session for ${tasks.length} URL(s)\n`,
   );
@@ -66,6 +66,7 @@ export async function runScreenshotJob(
       try {
         await session.capture(task);
         succeededCount += 1;
+        completedTasks.push(task);
         process.stdout.write(
           `✅ [${displayIndex}/${tasks.length}] Saved ${path.basename(task.outputPath)}\n`,
         );
@@ -86,9 +87,10 @@ export async function runScreenshotJob(
   }
 
   return {
-    outputDirectory: options.preparedWorkspace.outputDirectory,
+    outputDirectory: options.outputDirectory,
     succeededCount,
     failedCount: failures.length,
     failures,
+    completedTasks,
   };
 }
